@@ -19,6 +19,7 @@ public class SendMessage : MonoBehaviour {
     public InputField TextInput;
     public int indexcounter = 0;
     public Text deleteText;
+    public Text NameText;
     public Text moveTextUpwards;
     private Text text;
 
@@ -28,26 +29,30 @@ public class SendMessage : MonoBehaviour {
     float height = 22;
     ushort maxMessagesToDisplay = 12;
 
-    string channel = "chatchannel";
+    string channel = "";
 
     // Create a chat message queue so we can interate through all the messages
     Queue<GameObject> chatMessageQueue = new Queue<GameObject>();
    
     void Start()
     {
+        channel = "" + UserNameManager.Name;
+        NameText.text = ""+UserNameManager.Name;
         // Use this for initialization
         PNConfiguration pnConfiguration = new PNConfiguration();
-        pnConfiguration.PublishKey = "demo";
-        pnConfiguration.SubscribeKey = "demo";
+        pnConfiguration.PublishKey = "pub-c-defef892-dd96-4d60-a2e1-9a940a9338a2";
+        pnConfiguration.SubscribeKey = "sub-c-d5a437de-7219-11ec-bb6e-fa616d2d2ecf";
+        //pnConfiguration.SecretKey = "sec-c-YTViNjZjY2ItMTUwNS00NDEwLWI2NDgtNTViMzEyYTYwMTU3";
         pnConfiguration.LogVerbosity = PNLogVerbosity.BODY;
-        pnConfiguration.UUID = "user-1";
+        pnConfiguration.UUID = ""+UserNameManager.Name;
         pubnub = new PubNub(pnConfiguration);
 
-        // Add Listener to Submit button to send messages
+        
+
         Button btn = SubmitButton.GetComponent<Button>();
         
         btn.onClick.AddListener(TaskOnClick);
-
+        Debug.Log("pubnub " + pubnub);
         // Fetch the maxMessagesToDisplay messages sent on the given PubNub channel
         pubnub.FetchMessages()
             .Channels(new List<string> { channel })
@@ -70,7 +75,8 @@ public class SendMessage : MonoBehaviour {
                         // Format data into readable format
                         JSONInformation chatmessage = JsonUtility.FromJson<JSONInformation>(pnMessageResult.Payload.ToString());
 
-                        // Call the function to display the message in plain text
+                            // Call the function to display the message in plain text
+                            Debug.Log("chatmessage " + chatmessage);
                         CreateChat(chatmessage);
                     }
                  }
@@ -101,7 +107,7 @@ public class SendMessage : MonoBehaviour {
             })
             .WithPresence()
             .Execute();
-        
+        Debug.Log("channel "+ channel);
     }
 
     // Function used to create new chat objects based of the data received from PubNub
@@ -167,7 +173,9 @@ public class SendMessage : MonoBehaviour {
         publishMessage.username = string.Concat(UsernameInput.text, ": ");
         publishMessage.text = TextInput.text;
         string publishMessageToJSON = JsonUtility.ToJson(publishMessage);
-
+        Debug.Log("channel "+ channel);
+        Debug.Log("publishMessage " + publishMessage.text);
+        Debug.Log("publishMessage " + publishMessage.username);
         // Publish the JSON object to the assigned PubNub Channel
         pubnub.Publish()
             .Channel(channel)
